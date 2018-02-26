@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Google Maps - Map Overlay </title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_Njr95lGJ4QglsLgB9fBe_S0EZNRJXgA"></script>
+    <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
 
-    
     <style type="text/css">
 
         html, body {
@@ -22,8 +22,17 @@
         }
 
         .overlay-div {
-            border: 1px solid red;
+            width: auto !important;
+            height: auto !important;
+            line-break: 0px;
         }
+
+
+        .cluster-marker-icn {
+            font-size: 18px;
+            color:#f20909;
+        }
+
 
     </style>
 </head>
@@ -33,73 +42,96 @@
 
     <script type="text/javascript" >
         
-        USGSOverlay.prototype = new google.maps.OverlayView();
-        var overlay;
-
+        clusterOverlay.prototype = new google.maps.OverlayView();
+        var clusteringElements = [
+                                    {
+                                        type:'marker',
+                                        lat:27.1750199,
+                                        lng:78.0399612,
+                                    },
+                                    {
+                                        type:'marker',
+                                        lat:12.4156954,
+                                        lng:75.35360659999992,
+                                    },
+                                    {
+                                        type:'marker',
+                                        lat:12.259823647738918,
+                                        lng:75.16648292541504,
+                                    },
+                                    {
+                                        type:'marker',
+                                        lat:12.5841618,
+                                        lng:74.98206349999998,
+                                    },
+                                    {
+                                        type:'marker',
+                                        lat:12.5534034,
+                                        lng:75.00994249999997,
+                                    }
+                                ];
+    
         var initFns = function(){
 
 
             map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 12.13,
-                center: {lat: 8.9464928, lng: 76.5225892},
-                mapTypeId: 'roadmap'
+                    zoom: 4,
+                    center: {lat: 27.1750199, lng: 78.0399612},
+                    mapTypeId: 'roadmap'
                 });
 
-            var bounds = new google.maps.LatLngBounds(
-            new google.maps.LatLng(8.9464928, 76.5225902),
-            new google.maps.LatLng(8.9565939, 76.5326902));
 
-            srcImage = '';
 
-            overlay = new USGSOverlay(bounds, srcImage, map);
+            clusteringElements.forEach(function(element){
+
+                element.overlayObj = new clusterOverlay(element.lat,element.lng,element.type);
+
+            })
+
+            // overlay = new clusterOverlay(lat,lng,clusterType);
 
         }
 
-              function USGSOverlay(bounds, image, map) {
+            function clusterOverlay(lat,lng,clusterType) {
 
-            // Now initialize all properties.
-            this.bounds_ = bounds;
-            this.image_ = image;
-            this.map_ = map;
+                // Now initialize all properties.
 
-            // Define a property to hold the image's div. We'll
-            // actually create this div upon receipt of the onAdd()
-            // method so we'll leave it null for now.
-            this.div_ = null;
+                let bounds = new google.maps.LatLngBounds(
+                    new google.maps.LatLng(lat,lng),
+                    new google.maps.LatLng(lat,lng));
 
-            // Explicitly call setMap on this overlay
-            this.setMap(map);
-            }
+                this.bounds_ = bounds;
+                this.map_ = map;
+                this.clusterType_ = clusterType;
 
-            function USGSOverlay(bounds, image, map) {
+                // Define a property to hold the image's div. We'll
+                // actually create this div upon receipt of the onAdd()
+                // method so we'll leave it null for now.
+                this.div_ = null;
 
-            // Now initialize all properties.
-            this.bounds_ = bounds;
-            this.image_ = image;
-            this.map_ = map;
+                // Explicitly call setMap on this overlay
+                this.setMap(map);
 
-            // Define a property to hold the image's div. We'll
-            // actually create this div upon receipt of the onAdd()
-            // method so we'll leave it null for now.
-            this.div_ = null;
-
-            // Explicitly call setMap on this overlay
-            this.setMap(map);
             }
 
 
-            USGSOverlay.prototype.onAdd = function() {
+            clusterOverlay.prototype.onAdd = function() {
 
             var div = document.createElement('div');
             div.className += 'overlay-div';
             div.style.position = 'absolute';
+            
+
 
             // // Create the img element and attach it to the div.
-            // var img = document.createElement('img');
-            // img.src = this.image_;
-            // img.style.width = '100%';
-            // img.style.height = '100%';
-            // div.appendChild(img);
+            var img = document.createElement('img');
+            //img.src = 'http://icons.iconarchive.com/icons/paomedia/small-n-flat/24/map-marker-icon.png';
+            //div.appendChild(img);
+
+            var font_icon = document.createElement('i');
+            font_icon.className = 'fas fa-map-marker-alt cluster-marker-icn';
+
+            div.appendChild(font_icon);
 
             this.div_ = div;
 
@@ -113,7 +145,7 @@
 
             };
 
-            USGSOverlay.prototype.draw = function() {
+            clusterOverlay.prototype.draw = function() {
 
                 console.log('drawing ..')
 
@@ -130,36 +162,39 @@
 
                 // Resize the image's div to fit the indicated dimensions.
                 var div = this.div_;
-                div.style.left = sw.x + 'px';
-                div.style.top = ne.y + 'px';
-                div.style.width = (ne.x - sw.x) + 'px';
-                div.style.height = (sw.y - ne.y) + 'px';
+                div.style.left = (sw.x-6) + 'px';
+                div.style.top = (ne.y-19) + 'px';
+                // div.style.width = (ne.x - sw.x) + 'px';
+                // div.style.height = (sw.y - ne.y) + 'px';
+
+                //div.style.top = ne.y- + 'px';
+
             };
 
-            USGSOverlay.prototype.onRemove = function() {
+            clusterOverlay.prototype.onRemove = function() {
                 this.div_.parentNode.removeChild(this.div_);
             };
 
-            USGSOverlay.prototype.hide = function() {
+            clusterOverlay.prototype.hide = function() {
                 if (this.div_) {
                 // The visibility property must be a string enclosed in quotes.
                 this.div_.style.visibility = 'hidden';
                 }
             };
 
-            USGSOverlay.prototype.show = function() {
+            clusterOverlay.prototype.show = function() {
                 if (this.div_) {
                 this.div_.style.visibility = 'visible';
                 }
             };
 
-            USGSOverlay.prototype.toggle = function() {
+            clusterOverlay.prototype.toggle = function() {
                 if (this.div_) {
-                if (this.div_.style.visibility === 'hidden') {
-                    this.show();
-                } else {
-                    this.hide();
-                }
+                    if (this.div_.style.visibility === 'hidden') {
+                        this.show();
+                    } else {
+                        this.hide();
+                    }
                 }
             };
 
