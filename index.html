@@ -33,7 +33,6 @@
             color:#f20909;
         }
 
-
     </style>
 </head>
 <body>
@@ -48,26 +47,37 @@
                                         type:'marker',
                                         lat:27.1750199,
                                         lng:78.0399612,
+                                        title:'cluster 1',
                                     },
                                     {
                                         type:'marker',
                                         lat:12.4156954,
                                         lng:75.35360659999992,
+                                        title:'cluster 2',
                                     },
                                     {
                                         type:'marker',
                                         lat:12.259823647738918,
                                         lng:75.16648292541504,
+                                        title:'cluster 3',
                                     },
                                     {
                                         type:'marker',
                                         lat:12.5841618,
                                         lng:74.98206349999998,
+                                        title:'cluster 4',
                                     },
                                     {
                                         type:'marker',
                                         lat:12.5534034,
                                         lng:75.00994249999997,
+                                        title:'cluster 5',
+                                    },
+                                    {
+                                        type:'cluster',
+                                        lat:12.8534034,
+                                        lng:75.10994249999997,
+                                        title:'cluster 6',
                                     }
                                 ];
     
@@ -84,7 +94,7 @@
 
             clusteringElements.forEach(function(element){
 
-                element.overlayObj = new clusterOverlay(element.lat,element.lng,element.type);
+                element.overlayObj = new clusterOverlay(element);
 
             })
 
@@ -92,17 +102,17 @@
 
         }
 
-            function clusterOverlay(lat,lng,clusterType) {
+            function clusterOverlay(element) {
 
                 // Now initialize all properties.
 
                 let bounds = new google.maps.LatLngBounds(
-                    new google.maps.LatLng(lat,lng),
-                    new google.maps.LatLng(lat,lng));
+                    new google.maps.LatLng(element.lat,element.lng),
+                    new google.maps.LatLng(element.lat,element.lng));
 
                 this.bounds_ = bounds;
                 this.map_ = map;
-                this.clusterType_ = clusterType;
+                this.element_ = element;
 
                 // Define a property to hold the image's div. We'll
                 // actually create this div upon receipt of the onAdd()
@@ -117,9 +127,13 @@
 
             clusterOverlay.prototype.onAdd = function() {
 
+            var self = this;
+
             var div = document.createElement('div');
             div.className += 'overlay-div';
             div.style.position = 'absolute';
+            div.style.cursor = 'pointer';
+            div.title = this.element_.title;
             
 
 
@@ -139,15 +153,24 @@
             var panes = this.getPanes();
             panes.overlayImage.appendChild(this.div_);
 
-            google.maps.event.addDomListener(this.div_, 'mouseover', function(){ console.log('mouseover') });
-            google.maps.event.addDomListener(this.div_, 'mouseleave', function(){ console.log('mouseleave') });
+            google.maps.event.addDomListener(this.div_, 'mouseover', function(){
+                
+                 console.log('mouseover');
+                
+                 self.showClusterInfoWindow();
+                 
+                 
+                  });
+            google.maps.event.addDomListener(this.div_, 'mouseleave', function(){ 
+                
+                console.log('mouseleave');
+                
+                });
 
 
             };
 
             clusterOverlay.prototype.draw = function() {
-
-                console.log('drawing ..')
 
                 // We use the south-west and north-east
                 // coordinates of the overlay to peg it to the correct position and size.
@@ -198,7 +221,49 @@
                 }
             };
 
+            clusterOverlay.prototype.showClusterInfoWindow = function() {
+
+                var self = this;
+
+                console.log('Show Info Window');
+
+                if(this.clusterInfowindow) return;
+
+
+                var positionObject = {lat:parseFloat(this.element_.lat),lng:parseFloat(this.element_.lng)};
+                
+                console.log(positionObject);
+
+                var infoWindow = new google.maps.InfoWindow({
+                    content: 'Loading Overlay',
+                    position:positionObject,
+                    map:map,
+                    pixelOffset: new google.maps.Size(0, -18),
+                });
+
+                google.maps.event.addListener(infoWindow,'closeclick',function(){
+                    self.hideClusterInfoWindow();
+                });
+
+                this.clusterInfowindow = infoWindow;
+
+            };
+
+            clusterOverlay.prototype.hideClusterInfoWindow = function() {
+                
+                if(this.clusterInfowindow)
+                {
+
+                    this.clusterInfowindow.setMap(null);
+                    delete this.clusterInfowindow;
+
+                }
+
+            };
+
             google.maps.event.addDomListener(window, 'load', initFns);
+
+
     </script>
 </body>
 </html>
